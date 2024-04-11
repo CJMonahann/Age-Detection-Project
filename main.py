@@ -1,18 +1,30 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import cv2
 import tensorflow as tf
 from keras.preprocessing.image import array_to_img, img_to_array, load_img
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D
 from keras.layers import Activation, Dropout, Flatten, Dense
-import random
+import random, os, cv2
+
+def collect_data():
+    #constant filepath variables
+    root_path = '.' #the root directory
+    git_path = '.\\.git' #a path to a .git file
+    i = 0
+    for dir_path, dir_names, files in os.walk('.', topdown=False):
+        if(dir_path != root_path and not dir_path.startswith(git_path)): #if the directory isn't related to the root or Git
+            print(f'utkcropped: {len(files)} files')
 
 '''
 The random data that I created here is based off the idea of using the UTKFace dataset. This dataset has classifier information
 for a face image's race, age, and gender.
 '''
 def main():
+
+    collect_data()
+
+    '''
     face_names = ['man-face1', 'man-face2', 'woman-face1', 'woman-face2']
     data_classifiers = []
     new_size = 150
@@ -62,6 +74,7 @@ def main():
         format_age = format(age[0], '.2f')
         print(f'The Predicted age for Person {num_person} is {format_age} years old')
         num_person += 1
+    '''
 
 if __name__ == "__main__":
     main()
