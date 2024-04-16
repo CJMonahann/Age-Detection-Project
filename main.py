@@ -59,7 +59,7 @@ Creates CNN model and returns model predicitons.
 Parameters: image feature data, image classifier data, CNN batch size, CNN epochs, CNN validation split
 Returned: a np array containing CNN model age predictions from the testing portion of the feature data (set by validation split) 
 '''
-def run_model(feature_data, classifier_data, batch_size = 10, epochs = 3, validation_split = 0.1):
+def run_model(feature_data, feature_classifiers, test_data, batch_size = 10, epochs = 3, validation_split = 0.1):
     #now feed through a neural network!
     model = Sequential()
     model.add(Conv2D(64, (3,3), input_shape = feature_data.shape[1:]))
@@ -76,14 +76,12 @@ def run_model(feature_data, classifier_data, batch_size = 10, epochs = 3, valida
     model.add(Dense(1))
     model.add(Activation('relu'))
 
-    model.compile(loss='mae',
-                optimizer = 'adam',
-                metrics=['accuracy'])
+    model.compile(loss='mae', optimizer = 'adam')
 
-    model.fit(feature_data, classifier_data, batch_size = batch_size, epochs = epochs, validation_split = validation_split)
+    model.fit(feature_data, feature_classifiers, batch_size = batch_size, epochs = epochs, validation_split = validation_split)
 
     #now on to the prediction stage!
-    age_predictions = model.predict(feature_data)
+    age_predictions = model.predict(test_data)
 
     return age_predictions
 
@@ -95,15 +93,27 @@ Returned: none
 def display_results(model_predicitons, classifier_data):
     i = 0 #used to index classifier list and get the known age for each prediciton
     num_person = 1
+    avg_error = 0
     for age in model_predicitons:
         real_age = classifier_data[i]
         predicted_age = float(format(age[0]))
         prediciton_error = abs(real_age - predicted_age)
-        prediciton_error = float(format(prediciton_error))
-        print(f'Predicted age for Person {num_person}: {predicted_age} years old | Real Age - {real_age} | Error: {prediciton_error}')
-        #print(f'Predicted age for Person {num_person}: {predicted_age} years old')
+        print(f'Predicted age for Person {num_person}: {round(predicted_age)} years old | Real Age - {real_age} | Error: {round(prediciton_error)}')
+        avg_error += prediciton_error
         num_person += 1
         i += 1
+    avg_error = round(avg_error / i) #this will give us the mean absolute error
+    print(f'Average absolute error of the {i} samples: {avg_error} years')
+
+'''
+Restores the classifier data from its np array to that of a traditional array within integers
+Parameters: a np array
+Returned: an array of type int
+'''
+def restore_classifiers(arr):
+    real_nums = arr.copy()
+    real_nums = [int(num) for num in real_nums]
+    return real_nums
 
 '''
 main function that drives program logic at run-time
@@ -112,17 +122,17 @@ Returned: none
 '''
 def main():
     #variables
-    num_samples = 200
+    num_samples = 100
 
     #collect image directory information, load-in image data, and run CNN model
     dir_path, img_names = collect_file_info()
-    feature_data, classifier_data = load_in_data(dir_path, img_names, num_samples)
-    save_classifiers = classifier_data.copy()
-    save_classifiers = [int(num) for num in save_classifiers]
-    model_predicitons = run_model(feature_data, classifier_data)
+    feature_data, feature_classifiers = load_in_data(dir_path, img_names, num_samples) #feature data to test the model
+    test_data, test_classifiers = load_in_data(dir_path, img_names, num_samples) #new random sample to test with
+    predicition_classifiers = restore_classifiers(test_classifiers) #save test classifier data in original format to be used when calculating error
+    model_predicitons = run_model(feature_data, feature_classifiers, test_data)
 
     #display results of testing the model
-    display_results(model_predicitons, save_classifiers)
+    display_results(model_predicitons, predicition_classifiers)
     
 
 if __name__ == "__main__":
