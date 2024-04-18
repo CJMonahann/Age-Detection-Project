@@ -90,7 +90,7 @@ Displayes CNN model's predicted ages against the real ages of the used images. T
 Parameters: np array of CNN model predicitons, classifier data from the images
 Returned: none
 '''
-def display_results(model_predicitons, classifier_data):
+def get_results(model_predicitons, classifier_data):
     i = 0 #used to index classifier list and get the known age for each prediciton
     num_person = 1
     avg_error = 0
@@ -98,12 +98,11 @@ def display_results(model_predicitons, classifier_data):
         real_age = classifier_data[i]
         predicted_age = float(format(age[0]))
         prediciton_error = abs(real_age - predicted_age)
-        print(f'Predicted age for Person {num_person}: {round(predicted_age)} years old | Real Age - {real_age} | Error: {round(prediciton_error)}')
         avg_error += prediciton_error
         num_person += 1
         i += 1
     avg_error = round(avg_error / i) #this will give us the mean absolute error
-    print(f'Average absolute error of the {i} samples: {avg_error} years')
+    return avg_error
 
 '''
 Restores the classifier data from its np array to that of a traditional array within integers
@@ -116,24 +115,106 @@ def restore_classifiers(arr):
     return real_nums
 
 '''
+Part of the 'all_trials' function, this fucntion collects feature and testing data for a trial, and
+calls for the running of the CNN model.
+Parameters: directory path, arr of image names, number of samples to test on CNN, CNN batch_size,
+CNN epochs, CNN validation split.
+Returned: the average absolute error derived from the CNN model for the specific trial run
+'''
+def execute_trial(dir_path, img_names, num_samples, batch_size, epochs, validation_split):
+    feature_data, feature_classifiers = load_in_data(dir_path, img_names, num_samples) #feature data to test the model
+    test_data, test_classifiers = load_in_data(dir_path, img_names, num_samples) #new random sample to test with
+    predicition_classifiers = restore_classifiers(test_classifiers) #save test classifier data in original format to be used when calculating error
+    model_predicitons = run_model(feature_data, feature_classifiers, test_data, batch_size, epochs, validation_split)
+    #display results of testing the model
+    trials_data = get_results(model_predicitons, predicition_classifiers)
+    return trials_data
+
+'''
+Part of the experimentation, this function runs the CNN model for each of the specified sample sizes provided,
+as well as configures the CNN model for the specific experiment taking place.
+Parameters: directory path, arr of image names, arr of configured sample sizes to test, dict of configurations
+for the current experiment taking place.
+Returned: an arr with three average absolute error values recorded for the three trials.
+'''
+def all_trials(dir_path, img_names, sample_sizes, curr_config):
+    trials_data = []
+
+    #extract needed configurations
+    batch_size = curr_config["batch_size"]
+    epochs = curr_config["epochs"]
+    validation_split = curr_config["validation_split"]
+
+    for num_samples in sample_sizes: #represents the three trials per configuarion
+        avg_error = execute_trial(dir_path, img_names, num_samples, batch_size, epochs, validation_split)
+        trials_data.append(avg_error)
+    return trials_data
+
+'''
+Runs the three different experiments, each with their own configuarions, for a total of three times. 
+Per experiment, each of the three trials is done using a differen't number of sample sizes, as specified by the configured number or samples.
+Parameters: directory path, arr of image names, arr of configured sample sizes to test, dicitonary with 
+all experiment configurations for the three different tests.
+Returned: a dictionary containint the info about, as well as data, for all three experiments.
+'''
+def run_experiment(dir_path, img_names, sample_sizes, experiment_configs):
+    MAX_TEST = 3
+    num_test = 1
+
+    all_experiments = {}
+
+    while num_test <= MAX_TEST:
+        #get current experiment configs
+        key = f'test_{num_test}'
+        curr_config = experiment_configs[key]
+        trials_data = all_trials(dir_path, img_names, sample_sizes, curr_config) #run all three trials for the current test configurations
+
+        #add relevant experiment results to 'temp_dict' dicitonary
+        temp_dict = {}
+        temp_key = f'config_{num_test}'
+        temp_dict[temp_key] = curr_config
+        temp_dict["sample_sizes"] = sample_sizes
+        temp_dict["results"] = trials_data
+
+        #add the 'temp_dict' containing all relevant experiment information to the 'all_experiments' dictionary
+        all_experiments[key] = temp_dict
+        num_test += 1
+
+    #return data that can be used to construct graphs and/or tables
+    return all_experiments
+
+'''
 main function that drives program logic at run-time
 Parameters: none
 Returned: none
 '''
 def main():
-    #variables
-    num_samples = 100
+    #set values to be tested
+    experiment_configs = {
+        "test_1": {
+            "batch_size": 10,
+            "epochs": 3,
+            "validation_split": 0.1
+        },
+        "test_2": {
+            "batch_size": 30,
+            "epochs": 4,
+            "validation_split": 0.3
+        },
+        "test_3": {
+            "batch_size": 50,
+            "epochs": 5,
+            "validation_split": 0.5
+        }
+    }
+    sample_sizes = [100,200,300]
 
     #collect image directory information, load-in image data, and run CNN model
     dir_path, img_names = collect_file_info()
-    feature_data, feature_classifiers = load_in_data(dir_path, img_names, num_samples) #feature data to test the model
-    test_data, test_classifiers = load_in_data(dir_path, img_names, num_samples) #new random sample to test with
-    predicition_classifiers = restore_classifiers(test_classifiers) #save test classifier data in original format to be used when calculating error
-    model_predicitons = run_model(feature_data, feature_classifiers, test_data)
 
-    #display results of testing the model
-    display_results(model_predicitons, predicition_classifiers)
-    
-
+    #return data from all experiments that can be used to graph and/or make tables
+    experiments_data = run_experiment(dir_path, img_names, sample_sizes, experiment_configs)
+ 
+ 
 if __name__ == "__main__":
     main()
