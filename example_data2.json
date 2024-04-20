@@ -1,0 +1,13 @@
+{"test_1": 
+    {"config_1": {"batch_size": 10, "epochs": 3, "validation_split": 0.1}, 
+    "sample_sizes": [100, 200, 300], 
+    "results": [29, 12, 12]}, 
+"test_2": 
+    {"config_2": {"batch_size": 30, "epochs": 4, "validation_split": 0.3}, 
+    "sample_sizes": [100, 200, 300], 
+    "results": [17, 15, 15]}, 
+"test_3": 
+    {"config_3": {"batch_size": 50, "epochs": 5, "validation_split": 0.5}, 
+    "sample_sizes": [100, 200, 300], 
+    "results": [20, 13, 13]}
+}
