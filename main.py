@@ -215,19 +215,8 @@ def main():
     #collect image directory information, load-in image data, and run CNN model
     dir_path, img_names = collect_file_info()
 
-
     #return data from all experiments that can be used to graph and/or make tables
-    experiments_data = run_experiment(dir_path, img_names, sample_sizes, experiment_configs)
-    # print(experiments_data)
-
-
-
-    # with open("./example_data2.json","r") as file1:
-    #     data = json.load(file1)
-    # print(data)
-
-
-    # data = experiments_data
+    data = run_experiment(dir_path, img_names, sample_sizes, experiment_configs)
 
     # data needed for graphing
     batch_sizes = np.array([10,30,50])
@@ -255,7 +244,6 @@ def main():
     plt.xlabel("Sample Size")
     plt.ylabel("Average Error")
     plt.title("Sample Size vs Average Error for Test 1")
-
 
     # test 2 graph
     plt.subplot(1,3,2)
@@ -342,15 +330,10 @@ def main():
     # adding label to the table above it
     ax.text(0.5, 0.62, 'Epochs vs Average Results Table', horizontalalignment='center', transform=ax.transAxes, fontsize=12)
 
-
-
     ax.axis("off")
 
     # showing the table
     plt.show()
-
-
- 
  
 if __name__ == "__main__":
     main()
