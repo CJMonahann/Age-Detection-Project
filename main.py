@@ -207,7 +207,7 @@ def main():
             "validation_split": 0.5
         }
     }
-    sample_sizes = [100,200,300]
+    sample_sizes = [2000,4000,6000]
 
     #collect image directory information, load-in image data, and run CNN model
     dir_path, img_names = collect_file_info()
