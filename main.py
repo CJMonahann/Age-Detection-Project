@@ -189,9 +189,6 @@ Parameters: none
 Returned: none
 '''
 def main():
-    #TAKE THIS OUT
-    import json
-
     # #set values to be tested
     experiment_configs = {
         "test_1": {
